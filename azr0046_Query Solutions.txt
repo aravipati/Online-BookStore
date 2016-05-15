@@ -1,0 +1,234 @@
+1. Show the title of books which have more than 10 units in stock.
+
+SELECT Title FROM db_book WHERE Quantity > 10;
+
++-------+
+| Title |
++-------+
+| book4 |
+| book6 |
+| book7 |
++-------+
+2. Show the name of books supplied by *supplier1*.
+
+SELECT B.Title FROM db_book B WHERE B.Supplier_id IN (SELECT S.Supplierid FROM db_supplier S WHERE S.Companyname = 'Supplier1');
+
++-------+
+| Title |
++-------+
+| book6 |
+| book8 |
++-------+
+
+3. Show the subject names of books supplied by *supplier2*.
+
+SELECT SB.CategoryName FROM db_subject SB WHERE SB.SubjectID IN (SELECT B.Subject_id FROM db_book B WHERE B.Supplier_id IN (SELECT SP.Supplierid FROM db_supplier SP WHERE SP.Companyname = 'Supplier2'));
+
++--------------+
+| CategoryName |
++--------------+
+| category1    |
+| category2    |
++--------------+
+
+4. Show the name and price of the most expensive book supplied by *supplier3*.
+
+SELECT B.Title,B.UnitPrice FROM db_book B WHERE B.UnitPrice IN (SELECT MAX(B1.UnitPrice) FROM db_book B1 WHERE B1.Supplier_id IN (SELECT SP.Supplierid FROM db_supplier SP WHERE SP.CompanyName = 'Supplier3'));
+
++-------+-----------+
+| Title | UnitPrice |
++-------+-----------+
+| book7 |      56.9 |
++-------+-----------+
+5. Show the unique names of all books ordered by *lastname1 firstname1*.
+
+SELECT B.Title FROM db_book B WHERE B.Book_id IN (SELECT DISTINCT OD.Bookid FROM db_orderdetail OD WHERE OD.Orderid IN (SELECT OD1.Orderid FROM db_order OD1,db_customers C1 WHERE OD1.customerid=C1.customer_id IN(SELECT C.customer_id from db_customers C where C.Lastname ='lastname1' and C.Firstname = 'firstname1')));
+
++-------+
+| Title |
++-------+
+| book1 |
+| book4 |
+| book6 |
+| book7 |
++-------+
+6. Show the total price *lastname1 firstname1* has paid for the books.
+
+SELECT SUM(UnitPrice) FROM db_book B WHERE B.Book_id IN (SELECT OD.Bookid FROM db_orderdetail OD WHERE OD.Orderid IN (SELECT OD1.Orderid FROM db_order OD1,db_customers C1 WHERE OD1.customerid=C1.customer_id IN(SELECT C.customer_id from db_customers C where C.LastName ='lastname1' and C.FirstName = 'firstname1')));
+
++----------------+
+| SUM(UnitPrice) |
++----------------+
+|         116.14 |
++----------------+
+7. Show the names of the customers who have paid less than $80 in totals.
+
+SELECT C.Lastname,C.Firstname from db_customers C,db_book B,db_order O,db_orderdetail OD where C.customer_id = O.customerid and O.orderid = OD.Orderid and OD.Bookid = B.Book_id group by C.Lastname having SUM(B.UnitPrice) < 80;
+
++-----------+------------+
+| Lastname  | Firstname  |
++-----------+------------+
+| lastname3 | firstname3 |
++-----------+------------+
+
+8. Show the total price each customer paid and their names.  List the result in descending price.
+
+SELECT C.Lastname,C.Firstname,SUM(B.UnitPrice) from db_customers C,db_book B,db_order O,db_orderdetail OD where C.customer_id = O.customerid and O.Orderid = OD.Orderid and OD.Bookid = B.Book_id group by C.Lastname order by SUM(B.UnitPrice) desc;
+
++-----------+------------+------------------+
+| Lastname  | Firstname  | SUM(B.UnitPrice) |
++-----------+------------+------------------+
+| lastname2 | firstname2 |           272.82 |
+| lastname1 | firstname1 |           128.48 |
+| lastname3 | firstname3 |            12.34 |
++-----------+------------+------------------+
+
+9. Show the names of all the books shipped on 08/04/2014 and their shippers' names.
+
+SELECT B.Title,SH.Shippername from db_shipper SH,db_order O,db_orderdetail OD,db_book B where SH.Shipperid = O.Shipperid and O.orderid = OD.Orderid and OD.Bookid = B.Book_id and O.Shippeddate = '2014-8-4';
+
++-------+-------------+
+| Title | Shippername |
++-------+-------------+
+| book5 | shipper2    |
+| book3 | shipper1    |
+| book4 | shipper1    |
+| book7 | shipper1    |
+| book1 | shipper1    |
++-------+-------------+
+10. Show the names of all the books *lastname6 firstname6* was responsible for.
+
+SELECT B.Title FROM db_book B WHERE B.Book_id IN (SELECT OD.Bookid FROM db_orderdetail OD WHERE OD.Orderid IN (SELECT O.orderid FROM db_order O WHERE employee_id IN(SELECT employee_id from db_Employee where Lastname ='lastname6' and Firstname = 'firstname6')));
+
++-------+
+| Title |
++-------+
+| book1 |
+| book3 |
+| book4 |
+| book6 |
+| book7 |
++-------+
+
+11. Show the unique names of all the books *lastname1 firstname1* and *lastname4 firstname4* *both* ordered.
+
+SELECT B.Title FROM db_book B WHERE B.Book_id IN (SELECT DISTINCT OD.Bookid FROM db_orderdetail OD WHERE Orderid IN (SELECT O.orderid FROM db_order O WHERE O.customerid IN(SELECT C.customer_id from db_customers C where C.Lastname ='lastname1' and C.FirstName = 'firstname1'))) union SELECT B1.Title FROM db_book B1 WHERE B1.Book_id IN (SELECT DISTINCT OD.Bookid FROM db_orderdetail OD WHERE OD.Orderid IN (SELECT O.orderid FROM db_order O WHERE O.customerid IN(SELECT C1.customer_id from db_customers C1 where C1.Lastname ='lastname4' and C1.Firstname = 'firstname4')));
+
++-------+
+| Title |
++-------+
+| book1 |
+| book4 |
+| book6 |
+| book7 |
++-------+
+
+12. Show the names of all the ordered books and their total quantities.  List the result in ascending quantity.
+
+SELECT B.Title,SUM(B.Quantity) from db_order O ,db_orderdetail OD,db_book B where O.orderid = OD.Orderid and OD.Bookid = B.Book_id GROUP by B.Book_id ORDER BY SUM(B.Quantity);
+
++-------+-----------------+
+| Title | SUM(B.Quantity) |
++-------+-----------------+
+| book5 |               5 |
+| book3 |              10 |
+| book1 |              20 |
+| book4 |              24 |
+| book6 |              30 |
+| book7 |              34 |
++-------+-----------------+
+
+13. Show the names of the customers who ordered at least 3 books.
+
+SELECT C.Lastname,C.Firstname from db_customers C ,db_book B,db_order O,db_orderdetail OD where C.customer_id = O.customerid AND O.orderid = OD.Orderid AND OD.Bookid = B.Book_id GROUP BY C.Lastname HAVING COUNT(*) >= 3;
+
++-----------+------------+
+| Lastname  | Firstname  |
++-----------+------------+
+| lastname1 | firstname1 |
+| lastname2 | firstname2 |
++-----------+------------+
+
+14. Show the name of the customer who has ordered at least one book written by *author1*.
+
+SELECT C.Lastname,C.Firstname from db_customers C where customer_id IN (select O.customerid from db_order O WHERE O.orderid IN (select OD.Orderid from db_orderdetail OD where OD.Bookid IN (SELECT B.Book_id FROM db_book B where B.Author = 'author1')));
+
++-----------+------------+
+| Lastname  | Firstname  |
++-----------+------------+
+| lastname1 | firstname1 |
+| lastname3 | firstname3 |
+| lastname2 | firstname2 |
++-----------+------------+
+
+15. Show the name of the customers who have ordered at least a book in *category3* or *category4* and the book names.
+
+SELECT C.Lastname,C.Firstname,B.Title from db_customers C ,db_book B,db_order O,db_orderdetail OD where C.customer_id = O.customerid AND O.orderid = OD.Orderid AND OD.Bookid = B.Book_id AND B.Subject_id IN (SELECT SB.SubjectID from db_subject SB where SB.CategoryName = 'category3' or SB.CategoryName = 'category4');
+
++-----------+------------+-------+
+| Lastname  | Firstname  | Title |
++-----------+------------+-------+
+| lastname1 | firstname1 | book6 |
+| lastname1 | firstname1 | book7 |
+| lastname2 | firstname2 | book7 |
++-----------+------------+-------+
+
+16. Show the name of each category and the cheapest price of the books in that category.
+SELECT SB.CategoryName,MIN(B.UnitPrice) from db_book B,db_subject SB where B.Subject_id = SB.SubjectID GROUP BY SB.CategoryName;
+
++--------------+------------------+
+| CategoryName | MIN(B.UnitPrice) |
++--------------+------------------+
+| category1    |            12.34 |
+| category2    |            34.56 |
+| category3    |            12.34 |
+| category4    |             56.9 |
++--------------+------------------+
+17. Show the name and total sale (price of orders) of each employee.
+
+SELECT E.Lastname, SUM(B.UnitPrice) from db_Employee E, db_order O, db_orderdetail OD,db_book B where O.orderid = OD.Orderid AND OD.Bookid = B.Book_id AND E.employee_id = O.Employee_id GROUP BY E.employee_id;
+
++-----------+------------------+
+| Lastname  | SUM(B.UnitPrice) |
++-----------+------------------+
+| lastname5 |           150.48 |
+| lastname6 |           263.16 |
++-----------+------------------+
+
+18. Show the book names and their respective quantities for open orders (the orders which have not been shipped) at midnight 08/04/2014.
+
+SELECT B.Title,B.Quantity from db_order O, db_orderdetail OD,db_book B where O.orderid = OD.Orderid and OD.Bookid = B.Book_id and O.orderid IN (SELECT O1.orderid from db_order O1 WHERE O1.Shippeddate = '2014-8-4' or O1.Shippeddate IS Null)
+
++-------+----------+
+| Title | Quantity |
++-------+----------+
+| book6 |       30 |
+| book7 |       17 |
+| book5 |        5 |
+| book3 |       10 |
+| book4 |       12 |
+| book7 |       17 |
+| book1 |        5 |
++-------+----------+
+
+19. Show the names of customers who have ordered more than 1 book and the corresponding quantities.  List the result in the descending quantity.
+
+SELECT C.Lastname,C.Firstname,B.Quantity from db_customers C,db_book B,db_order O,db_orderdetail OD where C.customer_id = O.customerid and O.orderid = OD.Orderid and OD.Bookid = B.Book_id GROUP BY C.Lastname HAVING COUNT(*) > 1;
+
++-----------+------------+----------+
+| Lastname  | Firstname  | Quantity |
++-----------+------------+----------+
+| lastname1 | firstname1 |        5 |
+| lastname2 | firstname2 |        5 |
++-----------+------------+----------+
+
+20. Show the names of customers who have ordered more than 3 books and their respective telephone numbers.
+
+SELECT C.Lastname,C.Firstname,C.Phone from db_customers C,db_book B,db_order O,db_orderdetail OD where C.customer_id = O.customerid and O.orderid = OD.Orderid and OD.Bookid = B.Book_id GROUP BY C.Lastname HAVING COUNT(*) > 3;
+
++-----------+------------+-------------+
+| Lastname  | Firstname  | Phone       |
++-----------+------------+-------------+
+| lastname1 | firstname1 | 334-001-001 |
+| lastname2 | firstname2 | 334-002-002 |
++-----------+------------+-------------+

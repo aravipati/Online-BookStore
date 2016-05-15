@@ -1,0 +1,13 @@
+CREATE TABLE db_book( Book_id INTEGER, Title VARCHAR(20), UnitPrice REAL, Author VARCHAR(20), Quantity INTEGER, Supplier_id INTEGER, Subject_id INTEGER, PRIMARY KEY(Book_id), FOREIGN KEY(Supplier_id) REFERENCES db_supplier, FOREIGN KEY(Subject_id) REFERENCES db_subject);
+
+CREATE TABLE db_customers( customer_id INTEGER, Lastname CHAR(20), Firstname CHAR(20), Phone VARCHAR(20) );
+
+CREATE TABLE db_order( orderid INTEGER,customerid INTEGER,Employee_id INTEGER,OrderDate DATE,Shippeddate DATE,Shipperid INTEGER,PRIMARY KEY(orderid), FOREIGN KEY (Employee_id) REFERENCES db_Employee,FOREIGN KEY (customerid) REFERENCES db_customers,FOREIGN KEY (Shipperid) REFERENCES db_shipper);
+
+CREATE TABLE db_orderdetail( Bookid INTEGER, Orderid INTEGER, Quantity INTEGER, FOREIGN KEY (Bookid) REFERENCES db_book, FOREIGN KEY (Orderid) REFERENCES db_order);
+
+ CREATE TABLE db_shipper( Shipperid INTEGER, Shippername VARCHAR(20));
+
+ CREATE TABLE db_subject(SubjectID INTEGER, CategoryName VARCHAR(20));
+
+ CREATE TABLE db_supplier(Supplierid INTEGER, Companyname VARCHAR(20), Contact_lastname VARCHAR(20), Contact_firstname VARCHAR(20), PHONE VARCHAR(20));
